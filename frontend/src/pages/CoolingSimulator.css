@@ -1,0 +1,351 @@
+.simulator-container {
+  display: flex;
+  height: calc(100vh - 72px);
+  margin: -32px; /* negate the content area padding */
+  position: relative;
+  background-color: #0b0d12;
+}
+
+.sim-map-wrapper {
+  flex: 1;
+  position: relative;
+}
+
+/* Map controls */
+.sim-map-controls {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.sim-map-controls button {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.sim-map-controls button:last-child {
+  border-bottom: none;
+}
+
+.sim-map-controls button:hover {
+  background-color: rgba(255,255,255,0.05);
+}
+
+/* Active Sector */
+.active-sector {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  z-index: 1000;
+  background-color: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  padding: 16px 24px;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.sector-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.sector-name {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Side Panel */
+.sim-side-panel {
+  width: 400px;
+  background-color: var(--bg-sidebar);
+  border-left: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+}
+
+.sim-panel-header {
+  padding: 32px 32px 24px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.sim-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.sim-header-top h2 {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.engine-version {
+  font-size: 11px;
+  color: var(--accent-primary);
+  font-weight: 600;
+  text-align: right;
+  line-height: 1.2;
+}
+
+.sim-panel-header p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.sim-config-section {
+  padding: 32px;
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.config-item {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.config-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.config-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.config-value {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.sim-slider {
+  width: 100%;
+  -webkit-appearance: none;
+  background: transparent;
+  outline: none;
+}
+
+.sim-slider::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 4px;
+  background: var(--border-color);
+  border-radius: 2px;
+}
+
+.sim-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  cursor: pointer;
+  margin-top: -6px;
+  box-shadow: 0 0 8px rgba(0,0,0,0.5);
+}
+
+.config-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--border-color);
+  transition: .4s;
+  border-radius: 24px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+  background-color: var(--accent-light);
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+  background-color: #1a1d24;
+}
+
+.config-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* Projections */
+.projections-section {
+  padding: 32px;
+  border-top: 1px solid var(--border-color);
+  background-color: rgba(0,0,0,0.1);
+}
+
+.proj-header {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 24px;
+}
+
+.proj-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.proj-box {
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  padding: 16px;
+}
+
+.p-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.p-val {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.p-val span {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.p-sub {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.p-sub .icon {
+  color: var(--status-good);
+}
+
+.proj-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.proj-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.p-list-val {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.sim-footer {
+  display: flex;
+  padding: 24px 32px;
+  border-top: 1px solid var(--border-color);
+  gap: 16px;
+}
+
+.btn-export {
+  padding: 12px 24px;
+  border: 1px solid var(--border-color);
+  background-color: transparent;
+  color: var(--text-primary);
+  border-radius: var(--border-radius-md);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.btn-export:hover {
+  background-color: rgba(255,255,255,0.05);
+}
+
+.btn-propose {
+  flex: 1;
+  padding: 12px 24px;
+  background-color: var(--accent-light);
+  color: #1a1d24;
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-propose:hover {
+  opacity: 0.9;
+}
