@@ -380,3 +380,34 @@
   from { opacity: 0; transform: translateY(5px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+@media (max-width: 768px) {
+  .action-engine-container {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: 100%;
+  }
+  .audit-main {
+    overflow-y: visible;
+    height: auto;
+  }
+  .roof-options {
+    grid-template-columns: 1fr;
+  }
+  .balcony-options {
+    grid-template-columns: 1fr;
+  }
+  .stepper {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+  }
+  .step-line {
+    display: none;
+  }
+  .impact-panel {
+    border-left: none;
+    border-top: 1px solid var(--border-color);
+  }
+}

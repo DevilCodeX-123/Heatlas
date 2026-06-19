@@ -184,3 +184,50 @@
 .leaflet-control-attribution {
   filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
 }
+
+@media (max-width: 768px) {
+  .map-hub-container {
+    flex-direction: column;
+    height: auto;
+    margin: -16px;
+  }
+  .map-wrapper {
+    height: 400px;
+    flex: none;
+  }
+  .layer-toggles {
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+  }
+  .layer-btn {
+    font-size: 11px;
+    padding: 6px 10px;
+  }
+  .map-side-panel {
+    position: relative;
+    top: 0;
+    right: 0;
+    width: 100%;
+    border-left: none;
+    border-radius: 0;
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .map-legend {
+    position: relative;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    border-radius: 0;
+    border: none;
+  }
+  .map-actions {
+    bottom: auto;
+    top: 340px;
+    right: 12px;
+  }
+}

@@ -244,3 +244,15 @@
   right: -100px;
   background: var(--status-info);
 }
+
+@media (max-width: 768px) {
+  .auth-card {
+    width: 90%;
+    padding: 24px;
+  }
+  .auth-footer {
+    position: relative;
+    bottom: auto;
+    margin-top: 32px;
+  }
+}

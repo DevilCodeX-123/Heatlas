@@ -349,3 +349,20 @@ input:checked + .toggle-slider:before {
 .btn-propose:hover {
   opacity: 0.9;
 }
+
+@media (max-width: 768px) {
+  .simulator-container {
+    flex-direction: column;
+    height: auto;
+    overflow-y: visible;
+  }
+  .sim-map-wrapper {
+    height: 400px;
+    flex: none;
+  }
+  .sim-side-panel {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid var(--border-color);
+  }
+}

@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Search, Bell, User, Crosshair, Sun, Moon, FileText, AlertTriangle, LogOut } from 'lucide-react';
+import { Search, Bell, User, Crosshair, Sun, Moon, FileText, AlertTriangle, LogOut, Menu } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import './Layout.css';
 
-const Header = () => {
+const Header = ({ onMenuClick }) => {
   const { theme, toggleTheme } = useTheme();
   const [activeDropdown, setActiveDropdown] = useState(null);
   const dropdownRef = useRef(null);
@@ -32,6 +32,9 @@ const Header = () => {
   return (
     <header className="top-header">
       <div className="header-left">
+        <button className="mobile-menu-btn" onClick={onMenuClick}>
+          <Menu size={24} />
+        </button>
         <div className="header-links" ref={dropdownRef}>
            <NavLink to="/analytics" className={({ isActive }) => isActive ? "active" : ""}>Analytics</NavLink>
            

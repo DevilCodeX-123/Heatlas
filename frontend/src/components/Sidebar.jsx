@@ -10,13 +10,14 @@ import {
   Settings,
   HelpCircle,
   ShieldAlert,
-  Bot,
-  LogOut
+  LogOut,
+  X,
+  Bot
 } from 'lucide-react';
 import Modal from './Modal';
 import './Layout.css';
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isReportOpen, setIsReportOpen] = useState(false);
@@ -26,11 +27,14 @@ const Sidebar = () => {
     navigate('/auth');
   };
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
       <div className="sidebar-header">
         <div className="brand">
-          <ShieldAlert size={24} color="var(--text-primary)" />
+          <ThermometerSnowflake color="var(--accent-primary)" />
           Heatlas
+          <button className="mobile-close-btn" onClick={onClose}>
+            <X size={20} />
+          </button>
         </div>
         <div className="user-profile">
           <div className="avatar">

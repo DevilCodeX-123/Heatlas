@@ -347,3 +347,16 @@
   background-color: var(--bg-card);
   color: var(--text-primary);
 }
+
+@media (max-width: 768px) {
+  .compare-grid {
+    grid-template-columns: 1fr;
+  }
+  .city-metrics {
+    grid-template-columns: 1fr;
+  }
+  .lb-table {
+    display: block;
+    overflow-x: auto;
+  }
+}
