@@ -46,7 +46,8 @@ const CitizenAnalytics = () => {
   const testAiConnection = async () => {
     setAiStatus("Testing...");
     try {
-      const res = await fetch("http://localhost:8000/api/ai/test-connection", {
+      const API_BASE = import.meta.env.VITE_AI_URL || 'http://localhost:8000';
+      const res = await fetch(`${API_BASE}/api/ai/test-connection`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: "Hello from React Frontend!" })

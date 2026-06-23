@@ -16,7 +16,8 @@ const ActionEngine = () => {
     setIsGenerating(true);
     setAiResult(null);
     try {
-      const response = await fetch('http://localhost:8000/api/ai/action-plan', {
+      const API_BASE = import.meta.env.VITE_AI_URL || 'http://localhost:8000';
+      const response = await fetch(`${API_BASE}/api/ai/action-plan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ homeSize, homeAge, roofType, balcony, solarCap: parseInt(solarCap) })

@@ -16,7 +16,8 @@ const Governance = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/projects')
+    const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    fetch(`${API_BASE}/api/projects`)
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
