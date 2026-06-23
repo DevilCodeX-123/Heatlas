@@ -16,7 +16,7 @@ const ActionEngine = () => {
     setIsGenerating(true);
     setAiResult(null);
     try {
-      const API_BASE = import.meta.env.VITE_AI_URL || 'http://localhost:8000';
+      const API_BASE = import.meta.env.VITE_API_URL_1 || 'http://localhost:8000';
       const response = await fetch(`${API_BASE}/api/ai/action-plan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
