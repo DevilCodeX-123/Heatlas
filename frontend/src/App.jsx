@@ -10,7 +10,7 @@ import AIAssistant from './pages/AIAssistant';
 import Auth from './pages/Auth';
 
 const ProtectedRoute = ({ children }) => {
-  const isAuthenticated = localStorage.getItem('heatlas_auth') === 'true';
+  const isAuthenticated = !!localStorage.getItem('heatlas_auth');
   if (!isAuthenticated) {
     return <Navigate to="/auth" replace />;
   }

@@ -1,29 +1,68 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Minus, Crosshair, Layers, TreePine, Home, Hash, TrendingUp, Send } from 'lucide-react';
-import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from 'react-leaflet';
+import { getUserLocation, getWeatherData, getReverseGeocoding } from '../utils/geoServices';
 import 'leaflet/dist/leaflet.css';
 import './CoolingSimulator.css';
+
+const MapUpdater = ({ center }) => {
+  const map = useMap();
+  useEffect(() => {
+    map.flyTo(center, 15);
+  }, [center, map]);
+  return null;
+};
 
 const CoolingSimulator = () => {
   const [treeDensity, setTreeDensity] = useState(12);
   const [greenRoof, setGreenRoof] = useState(5);
   const [albedo, setAlbedo] = useState(true);
+  
+  const [baselineTemp, setBaselineTemp] = useState(44.2);
+  const [coords, setCoords] = useState([28.6315, 77.2167]);
+  const [locationName, setLocationName] = useState("Connaught Place Central • Ward 04");
+
+  useEffect(() => {
+    const fetchLocalData = async () => {
+      let lat = 28.6315; let lon = 77.2167;
+      try {
+        const c = await getUserLocation();
+        lat = c.lat; lon = c.lon;
+        setCoords([lat, lon]);
+      } catch(e) {}
+
+      const [weather, geo] = await Promise.all([
+        getWeatherData(lat, lon),
+        getReverseGeocoding(lat, lon)
+      ]);
+
+      if (weather?.current?.temperature_2m) {
+        setBaselineTemp(weather.current.temperature_2m + 2.5); // Add 2.5C for Urban Heat Island effect to simulate a hotspot
+      }
+      if (geo?.address?.city) {
+        setLocationName(`${geo.address.city} Urban Hotspot`);
+      }
+    };
+    fetchLocalData();
+  }, []);
 
   // Simple calculation for projection values based on inputs
-  const tempRed = -3.2 - (treeDensity - 12)*0.1 - (greenRoof - 5)*0.05 - (albedo ? 0 : -0.8);
+  const tempRed = -0.5 - (treeDensity - 12)*0.1 - (greenRoof - 5)*0.05 - (albedo ? 0 : -0.8);
   const estInv = 4.8 + (treeDensity - 12)*0.1 + (greenRoof - 5)*0.2 + (albedo ? 0 : -0.5);
 
   return (
     <div className="simulator-container">
       <div className="sim-map-wrapper">
-        <MapContainer center={[28.6315, 77.2167]} zoom={15} style={{ height: '100%', width: '100%', zIndex: 0 }} zoomControl={false}>
+        <MapContainer center={coords} zoom={15} style={{ height: '100%', width: '100%', zIndex: 0 }} zoomControl={false}>
+          <MapUpdater center={coords} />
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           />
-          <CircleMarker center={[28.6315, 77.2167]} radius={10} color="var(--status-critical)" fillColor="var(--status-critical)" fillOpacity={0.5}>
+          <CircleMarker center={coords} radius={40} color="var(--status-critical)" fillColor="var(--status-critical)" fillOpacity={0.4}>
             <Popup>
-              HOTSPOT: 44.2°C
+              BASE HOTSPOT: {baselineTemp.toFixed(1)}°C <br/>
+              SIMULATED: {(baselineTemp + tempRed).toFixed(1)}°C
             </Popup>
           </CircleMarker>
         </MapContainer>
@@ -37,7 +76,7 @@ const CoolingSimulator = () => {
 
         <div className="active-sector">
           <div className="sector-label">Active Sector</div>
-          <div className="sector-name">Connaught Place Central • Ward 04</div>
+          <div className="sector-name">{locationName}</div>
         </div>
       </div>
 
@@ -105,10 +144,10 @@ const CoolingSimulator = () => {
           <div className="proj-header">REAL-TIME PROJECTIONS</div>
           <div className="proj-grid">
             <div className="proj-box">
-              <div className="p-label">TEMP REDUCTION</div>
-              <div className="p-val" style={{color: 'var(--text-primary)'}}>{tempRed.toFixed(1)}<span>°C</span></div>
+              <div className="p-label">SIMULATED TEMPERATURE</div>
+              <div className="p-val" style={{color: 'var(--status-good)'}}>{(baselineTemp + tempRed).toFixed(1)}<span>°C</span></div>
               <div style={{height: '2px', backgroundColor: 'var(--border-color)', marginTop: '8px'}}>
-                <div style={{width: '60%', height: '100%', backgroundColor: 'var(--text-primary)'}}></div>
+                <div style={{width: '60%', height: '100%', backgroundColor: 'var(--status-good)'}}></div>
               </div>
             </div>
             <div className="proj-box">

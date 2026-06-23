@@ -15,15 +15,70 @@ const Auth = () => {
   });
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!isLogin && formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match!");
-      return;
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+    if (!isLogin) {
+      // Sign Up Flow
+      if (formData.password !== formData.confirmPassword) {
+        alert("Passwords do not match!");
+        return;
+      }
+      
+      try {
+        const response = await fetch(`${API_URL}/api/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            name: formData.name, 
+            email: formData.email, 
+            password: formData.password 
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.message || 'Registration failed');
+        }
+        
+        // Log them in with real JWT token
+        localStorage.setItem('heatlas_auth', data.token);
+        localStorage.setItem('heatlas_current_user', JSON.stringify({ name: data.name, email: data.email }));
+        navigate('/analytics');
+        
+      } catch (err) {
+        alert(err.message);
+      }
+      
+    } else {
+      // Login Flow
+      try {
+        const response = await fetch(`${API_URL}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            email: formData.email, 
+            password: formData.password 
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.message || 'Login failed');
+        }
+        
+        // Log them in with real JWT token
+        localStorage.setItem('heatlas_auth', data.token);
+        localStorage.setItem('heatlas_current_user', JSON.stringify({ name: data.name, email: data.email }));
+        navigate('/analytics');
+        
+      } catch (err) {
+        alert(err.message);
+      }
     }
-    // Simulate login success and redirect to dashboard
-    localStorage.setItem('heatlas_auth', 'true');
-    navigate('/analytics');
   };
 
   return (

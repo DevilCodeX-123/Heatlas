@@ -10,6 +10,13 @@ const Header = ({ onMenuClick }) => {
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
+  // Get current user from local storage
+  const currentUserStr = localStorage.getItem('heatlas_current_user');
+  const currentUser = currentUserStr ? JSON.parse(currentUserStr) : { name: 'Guest User', email: '' };
+  
+  // Create initials for avatar
+  const initials = currentUser.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'U';
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -112,10 +119,10 @@ const Header = ({ onMenuClick }) => {
           {activeDropdown === 'profile' && (
             <div className="dropdown-menu align-right profile-dropdown">
               <div className="profile-header">
-                <div className="profile-avatar">DK</div>
+                <div className="profile-avatar">{initials}</div>
                 <div>
-                  <div className="profile-name">Devill KK</div>
-                  <div className="profile-email">devillkk@cosmicfoundry.com</div>
+                  <div className="profile-name">{currentUser.name}</div>
+                  <div className="profile-email">{currentUser.email}</div>
                 </div>
               </div>
               <div className="dropdown-divider"></div>

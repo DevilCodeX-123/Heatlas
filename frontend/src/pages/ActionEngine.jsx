@@ -9,6 +9,32 @@ const ActionEngine = () => {
   const [roofType, setRoofType] = useState('concrete');
   const [balcony, setBalcony] = useState('single');
   const [solarCap, setSolarCap] = useState(45);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [aiResult, setAiResult] = useState(null);
+
+  const generateActionPlan = async () => {
+    setIsGenerating(true);
+    setAiResult(null);
+    try {
+      const response = await fetch('http://localhost:8000/api/ai/action-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ homeSize, homeAge, roofType, balcony, solarCap: parseInt(solarCap) })
+      });
+      const data = await response.json();
+      setAiResult(data);
+    } catch (e) {
+      setAiResult({
+        savings: "Error",
+        carbon: "Error",
+        insight1: "Could not connect to Python AI Engine. Ensure uvicorn is running.",
+        insight2: "",
+        logs: ["> ERROR: Connection refused", "> system_halted."]
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const handleNext = () => {
     if (step < 3) setStep(step + 1);
@@ -165,8 +191,8 @@ const ActionEngine = () => {
                 Next Step <ArrowRight size={16} />
               </button>
             ) : (
-              <button className="nav-btn btn-next" onClick={() => alert("Audit successfully submitted to your profile!")}>
-                Submit Audit <Check size={16} />
+              <button className="nav-btn btn-next" onClick={generateActionPlan} disabled={isGenerating}>
+                {isGenerating ? "Analyzing..." : "Generate AI Action Plan"} <Check size={16} />
               </button>
             )}
           </div>
@@ -179,38 +205,42 @@ const ActionEngine = () => {
         
         <div className="projection-card">
           <div className="proj-label">Estimated Annual Savings</div>
-          <div className="proj-value">₹14,250<span> / year</span></div>
+          <div className="proj-value" style={{color: aiResult?.savings === 'Error' ? 'var(--status-critical)' : 'inherit'}}>
+            {aiResult ? aiResult.savings : "₹--"}
+          </div>
           <div className="proj-divider"></div>
           <div className="proj-label">Carbon Footprint Reduction</div>
-          <div className="proj-value" style={{fontSize: '24px'}}>2.4 Tons CO₂</div>
-          <div className="proj-sub">= 120 trees planted equivalent</div>
+          <div className="proj-value" style={{fontSize: '24px', color: aiResult?.carbon === 'Error' ? 'var(--status-critical)' : 'inherit'}}>
+            {aiResult ? aiResult.carbon : "--"}
+          </div>
         </div>
 
         <div className="panel-title" style={{marginTop: '16px'}}>Contextual Insights</div>
 
         <div className="insight-card">
           <Info size={16} />
-          <div>Based on your <span>Concrete Roof</span>, white thermal coating could reduce internal temps by up to 5°C.</div>
+          <div>{aiResult ? aiResult.insight1 : "Complete the audit and generate your AI plan to see your tailored architectural insights."}</div>
         </div>
 
         <div className="insight-card">
           <Zap size={16} />
-          <div>Your <span>{solarCap} m²</span> solar potential qualifies for a 30% government subsidy in your region.</div>
+          <div>{aiResult ? aiResult.insight2 : "Your solar and energy efficiency potential will appear here once analyzed by EcoShield AI."}</div>
         </div>
 
         <div className="ai-box">
           <div className="ai-header">
             <Bot size={24} className="ai-icon" />
             <div>
-              <div className="ai-title">EcoShield AI</div>
-              <div className="ai-subtitle">Analyzing input patterns...</div>
+              <div className="ai-title">EcoShield AI Terminal</div>
+              <div className="ai-subtitle">{isGenerating ? "Analyzing input patterns..." : "Awaiting input..."}</div>
             </div>
           </div>
           <div className="terminal-text">
-            <div className="done">&gt; calibrating_thermal_models...</div>
-            <div className="done">&gt; fetching_regional_subsidies...</div>
-            <div className="done">&gt; cross_referencing_solar_maps...</div>
-            <div>&gt; optimal_plan_found.</div>
+            {aiResult ? (
+              aiResult.logs.map((log, index) => <div key={index} className={log.includes("ERROR") ? "error-log" : "done"}>{log}</div>)
+            ) : (
+              <div>&gt; system_ready.</div>
+            )}
           </div>
         </div>
 

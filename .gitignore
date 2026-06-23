@@ -48,3 +48,19 @@ WhatsApp*.jpeg
 *.njsproj
 *.sln
 *.sw?
+
+# --- Python & AI Backend ---
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.env/
+Ai/venv/
+Ai/env/
+
+# AI Models (Do not commit large weights files)
+*.gguf
+*.bin
+*.pt
+*.safetensors

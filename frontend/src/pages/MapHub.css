@@ -141,9 +141,24 @@
 
 .legend-gradient {
   height: 8px;
-  background: linear-gradient(to right, #4a72d4, #f6ad55, #fc8181);
   border-radius: 4px;
   margin-bottom: 8px;
+}
+
+.legend-gradient.layer-heat {
+  background: linear-gradient(to right, #fcd34d, #f97316, #dc2626);
+}
+
+.legend-gradient.layer-aqi {
+  background: linear-gradient(to right, #34d399, #eab308, #7e22ce);
+}
+
+.legend-gradient.layer-green {
+  background: linear-gradient(to right, #86efac, #22c55e, #15803d);
+}
+
+.legend-gradient.layer-water {
+  background: linear-gradient(to right, #93c5fd, #3b82f6, #1d4ed8);
 }
 
 .legend-labels {
@@ -178,7 +193,7 @@
   background: #0b0d12 !important;
 }
 
-.leaflet-layer,
+/* Removed invert filter to allow true Google Satellite colors to show */
 .leaflet-control-zoom-in,
 .leaflet-control-zoom-out,
 .leaflet-control-attribution {

@@ -20,6 +20,10 @@ import './Layout.css';
 const Sidebar = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  
+  // Get current user from local storage
+  const currentUserStr = localStorage.getItem('heatlas_current_user');
+  const currentUser = currentUserStr ? JSON.parse(currentUserStr) : { name: 'Guest User', email: '' };
   const [isReportOpen, setIsReportOpen] = useState(false);
 
   const handleLogout = () => {
@@ -38,10 +42,10 @@ const Sidebar = ({ isOpen, onClose }) => {
         </div>
         <div className="user-profile">
           <div className="avatar">
-             <img src="https://ui-avatars.com/api/?name=User&background=2d3340&color=fff" alt="User" style={{borderRadius: '50%', width: '100%'}} />
+             <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name)}&background=2d3340&color=fff`} alt="User" style={{borderRadius: '50%', width: '100%'}} />
           </div>
           <div className="user-info">
-            <span className="user-name">Scientific Intel</span>
+            <span className="user-name">{currentUser.name}</span>
             <span className="user-role">Research Dept</span>
           </div>
         </div>

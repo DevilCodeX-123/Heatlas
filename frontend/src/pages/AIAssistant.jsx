@@ -18,7 +18,7 @@ const AIAssistant = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/data/chat', {
+      const response = await fetch('http://localhost:8000/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userMsg })
@@ -27,7 +27,7 @@ const AIAssistant = () => {
       setMessages(prev => [...prev, { role: 'ai', text: data.reply }]);
     } catch (error) {
       console.error(error);
-      setMessages(prev => [...prev, { role: 'ai', text: "I'm having trouble connecting to my neural core right now." }]);
+      setMessages(prev => [...prev, { role: 'ai', text: "I'm having trouble connecting to my local python logic core right now. Make sure the uvicorn server is running on port 8000." }]);
     } finally {
       setLoading(false);
     }

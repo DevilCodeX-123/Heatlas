@@ -1,15 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Download, Share2, Home, TreePine, Droplets, Zap } from 'lucide-react';
+import { Download, Share2, Home, TreePine, Droplets, Zap, MapPin } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, Tooltip, Cell, PieChart, Pie } from 'recharts';
+import { getUserLocation, getWeatherData, getAqiData, getReverseGeocoding } from '../utils/geoServices';
 import './CitizenAnalytics.css';
-
-const heatData = [
-  { name: '2019', value: 30 },
-  { name: '2020', value: 45 },
-  { name: '2021', value: 40 },
-  { name: '2022', value: 65 },
-  { name: '2023', value: 85 },
-];
 
 const GaugeChart = ({ value, color, max = 100 }) => {
   const data = [
@@ -45,31 +38,110 @@ const GaugeChart = ({ value, color, max = 100 }) => {
 const CitizenAnalytics = () => {
   const [weatherData, setWeatherData] = useState(null);
   const [aqiData, setAqiData] = useState(null);
+  const [recentHeatData, setRecentHeatData] = useState([]);
+  const [locationName, setLocationName] = useState({ city: "Detecting Location...", state: "" });
+  const [loadingLoc, setLoadingLoc] = useState(true);
+  const [aiStatus, setAiStatus] = useState("Not Tested");
+
+  const testAiConnection = async () => {
+    setAiStatus("Testing...");
+    try {
+      const res = await fetch("http://localhost:8000/api/ai/test-connection", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: "Hello from React Frontend!" })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAiStatus("Connected to Python AI!");
+        alert(data.ai_response);
+      } else {
+        setAiStatus("Connection Failed");
+      }
+    } catch (err) {
+      console.error(err);
+      setAiStatus("Error: Is FastAPI running?");
+      alert("Error connecting to AI. Make sure you run 'uvicorn api:app --reload' in the Ai folder.");
+    }
+  };
 
   useEffect(() => {
-    Promise.all([
-      fetch('http://localhost:5000/api/data/weather').then(res => res.json()),
-      fetch('http://localhost:5000/api/data/aqi').then(res => res.json())
-    ]).then(([weather, aqi]) => {
-      setWeatherData(weather);
-      setAqiData(aqi);
-    }).catch(err => console.error(err));
+    const fetchEnvironmentalData = async () => {
+      try {
+        // 1. Try to get user location
+        let lat = 28.6139; // Default: New Delhi
+        let lon = 77.2090;
+        
+        try {
+          const coords = await getUserLocation();
+          lat = coords.lat;
+          lon = coords.lon;
+        } catch (e) {
+          console.warn("Geolocation blocked or failed. Using default location (New Delhi).");
+        }
+
+        // 2. Fetch all real-time data in parallel
+        const [weather, aqi, geo] = await Promise.all([
+          getWeatherData(lat, lon),
+          getAqiData(lat, lon),
+          getReverseGeocoding(lat, lon)
+        ]);
+
+        if (weather) {
+          setWeatherData(weather);
+          if (weather.daily && weather.daily.time) {
+            const historical = [];
+            for(let i=0; i<weather.daily.time.length; i++) {
+              const dateStr = weather.daily.time[i];
+              const maxTemp = weather.daily.temperature_2m_max[i];
+              const day = new Date(dateStr).toLocaleDateString('en-US', {weekday: 'short'});
+              historical.push({ name: day, value: maxTemp });
+            }
+            setRecentHeatData(historical);
+          }
+        }
+        if (aqi) setAqiData(aqi);
+        
+        if (geo && geo.address) {
+          const city = geo.address.city || geo.address.town || geo.address.village || geo.address.county || geo.address.suburb || "Local Area";
+          const state = geo.address.state || geo.address.country || "";
+          setLocationName({ city, state });
+        } else {
+          setLocationName({ city: "New Delhi", state: "India" });
+        }
+      } catch (err) {
+        console.error("Error loading environmental data:", err);
+      } finally {
+        setLoadingLoc(false);
+      }
+    };
+
+    fetchEnvironmentalData();
   }, []);
 
-  const currentTemp = weatherData?.current?.temperature_2m || 42;
-  const currentAqi = aqiData?.current?.us_aqi || 182;
+  const currentTemp = weatherData?.current?.temperature_2m ?? "--";
+  const currentAqi = aqiData?.current?.us_aqi ?? "--";
   const tempColor = currentTemp > 40 ? 'var(--status-critical)' : currentTemp > 35 ? 'var(--status-warning)' : 'var(--status-good)';
+
+  // Real Calculations based on live API data
+  const realTemp = parseFloat(currentTemp) || 25;
+  const realAqi = parseFloat(currentAqi) || 50;
+  
+  const heatRiskScore = Math.min(100, Math.max(0, Math.round(((realTemp - 25) / 20) * 100))); 
+  const airQualityRisk = Math.min(100, Math.round((realAqi / 300) * 100));
+  const sustainabilityScore = Math.max(0, 100 - airQualityRisk);
+  const greenCanopyScore = Math.max(10, Math.round(100 - (heatRiskScore * 0.5) - (airQualityRisk * 0.5)));
 
   return (
     <div className="analytics-container">
       <div className="page-header">
         <div>
           <div className="breadcrumb">
-            Analytics &gt; <span>Delhi NCR</span>
+            Analytics &gt; <span>{loadingLoc ? "Locating..." : `${locationName.city}`}</span>
           </div>
           <div className="page-title">
             <h1>Citizen Intelligence Dashboard</h1>
-            <p className="page-subtitle">Personalized sustainability and heat risk analysis for Chanakyapuri, New Delhi.</p>
+            <p className="page-subtitle">Personalized sustainability and heat risk analysis for <MapPin size={14} style={{display: 'inline', marginBottom: '-2px'}}/> {loadingLoc ? "Detecting area..." : `${locationName.city}, ${locationName.state}`}.</p>
           </div>
         </div>
         <div className="header-actions">
@@ -84,41 +156,48 @@ const CitizenAnalytics = () => {
 
       <div className="stats-grid">
         <div className="stat-card">
-          <div className="stat-title">Heat Risk Score</div>
-          <GaugeChart value={82} color="var(--status-critical)" />
-          <div className="stat-footer">Critical Exposure Detected</div>
+          <div className="stat-title">Real-Time Heat Risk</div>
+          <GaugeChart value={heatRiskScore} color={heatRiskScore > 75 ? "var(--status-critical)" : heatRiskScore > 50 ? "var(--status-warning)" : "var(--status-good)"} />
+          <div className="stat-footer">{heatRiskScore > 75 ? "Critical Exposure Detected" : "Moderate Exposure"}</div>
         </div>
         <div className="stat-card">
-          <div className="stat-title">Green Canopy Score</div>
-          <GaugeChart value={34} color="var(--status-info)" />
-          <div className="stat-footer">Below Regional Average (45%)</div>
+          <div className="stat-title">Estimated Green Canopy</div>
+          <GaugeChart value={greenCanopyScore} color="var(--status-info)" />
+          <div className="stat-footer">Derived from local heat retention</div>
         </div>
         <div className="stat-card">
           <div className="stat-title">Sustainability Score</div>
-          <GaugeChart value={58} color="var(--status-warning)" />
-          <div className="stat-footer">Moderate Adaptation Level</div>
+          <GaugeChart value={sustainabilityScore} color={sustainabilityScore > 50 ? "var(--status-good)" : "var(--status-warning)"} />
+          <div className="stat-footer">Based on local air quality</div>
         </div>
         <div className="stat-card" style={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
           <div className="ring-content" style={{textAlign: 'center', marginBottom: '16px'}}>
             <span className="ring-value" style={{color: tempColor, fontSize: '32px', fontWeight: 'bold'}}>{currentTemp}°C</span>
             <span className="ring-label" style={{display: 'block', fontSize: '12px', color: 'var(--text-secondary)'}}>Live Temperature</span>
           </div>
-          <div className="ring-content" style={{textAlign: 'center'}}>
+          <div className="ring-content" style={{textAlign: 'center', marginBottom: '16px'}}>
             <span className="ring-value" style={{color: 'var(--status-warning)', fontSize: '32px', fontWeight: 'bold'}}>{currentAqi}</span>
             <span className="ring-label" style={{display: 'block', fontSize: '12px', color: 'var(--text-secondary)'}}>Live US AQI</span>
           </div>
+          <button onClick={testAiConnection} style={{padding: '5px 10px', fontSize: '12px', background: 'var(--status-info)', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer'}}>
+            Test AI Bridge
+          </button>
+          <span style={{fontSize: '10px', marginTop: '4px', color: 'var(--text-secondary)'}}>{aiStatus}</span>
         </div>
       </div>
 
       <div className="middle-grid">
         <div className="chart-card">
           <div className="chart-header">
-            <div className="chart-title">Historical Heat Trends (5 Years)</div>
-            <div className="badge-danger">SEVERE INCREASE</div>
+            <div className="chart-title">Recent Heat Trends (Last 5 Days)</div>
+            {recentHeatData.length > 0 && recentHeatData[recentHeatData.length-1].value > 40 ? 
+              <div className="badge-danger">SEVERE HEATWAVE</div> : 
+              <div className="badge-warning">MONITORING</div>
+            }
           </div>
           <div style={{ height: '220px', width: '100%' }}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={heatData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <BarChart data={recentHeatData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="var(--status-critical)" stopOpacity={0.8}/>
@@ -133,8 +212,8 @@ const CitizenAnalytics = () => {
                 <Tooltip cursor={{fill: 'rgba(255,255,255,0.05)'}} contentStyle={{backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', color: 'var(--text-primary)'}}/>
                 <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                   {
-                    heatData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={index === 4 ? "url(#colorValue)" : "url(#colorValueNormal)"} />
+                    recentHeatData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.value > 40 ? "url(#colorValue)" : "url(#colorValueNormal)"} />
                     ))
                   }
                 </Bar>
