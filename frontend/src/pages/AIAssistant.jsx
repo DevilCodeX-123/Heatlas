@@ -70,11 +70,17 @@ const AIAssistant = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: finalPayload })
       });
+      
       const data = await response.json();
-      setMessages(prev => [...prev, { role: 'ai', text: data.reply }]);
+      
+      if (!response.ok) {
+        throw new Error(data.message || data.error?.message || `Server returned ${response.status}`);
+      }
+      
+      setMessages(prev => [...prev, { role: 'ai', text: data.reply || "No reply provided by the server." }]);
     } catch (error) {
       console.error(error);
-      setMessages(prev => [...prev, { role: 'ai', text: "I'm having trouble connecting to my local python logic core right now. Make sure the uvicorn server is running on port 8000." }]);
+      setMessages(prev => [...prev, { role: 'ai', text: `Unable to connect to Heatlas AI Engine. (Reason: ${error.message})` }]);
     } finally {
       setLoading(false);
     }

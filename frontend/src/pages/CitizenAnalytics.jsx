@@ -122,11 +122,17 @@ const CitizenAnalytics = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ district, state, temperature: temp, aqi })
       });
+      
       const data = await res.json();
-      setAiAnalysis(data.analysis || "Analysis complete.");
+      
+      if (!res.ok) {
+        throw new Error(data.message || data.error?.message || `Server returned ${res.status}`);
+      }
+      
+      setAiAnalysis(data.analysis || "No analysis provided by the server.");
     } catch (err) {
       console.error(err);
-      setAiAnalysis("Unable to connect to Heatlas AI Engine.");
+      setAiAnalysis(`Unable to connect to Heatlas AI Engine. (Reason: ${err.message})`);
     } finally {
       setIsAiLoading(false);
     }
