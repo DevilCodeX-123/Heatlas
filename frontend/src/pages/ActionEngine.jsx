@@ -16,7 +16,9 @@ const ActionEngine = () => {
     setIsGenerating(true);
     setAiResult(null);
     try {
-      const API_BASE = import.meta.env.VITE_API_URL_1 || 'http://localhost:8000';
+      let API_BASE = import.meta.env.VITE_API_URL_1 || 'http://localhost:8000';
+      // Strip trailing slashes AND trailing /api if user added them by mistake
+      API_BASE = API_BASE.replace(/\/api\/?$/, '').replace(/\/+$/, '');
       const response = await fetch(`${API_BASE}/api/ai/action-plan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

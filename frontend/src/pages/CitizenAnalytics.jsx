@@ -117,7 +117,7 @@ const CitizenAnalytics = () => {
     setIsAiLoading(true);
     try {
       let API_BASE = import.meta.env.VITE_API_URL_1 || 'http://localhost:8000';
-      API_BASE = API_BASE.replace(/\/+$/, '');
+      API_BASE = API_BASE.replace(/\/api\/?$/, '').replace(/\/+$/, '');
       const res = await fetch(`${API_BASE}/api/ai/district-analysis`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
