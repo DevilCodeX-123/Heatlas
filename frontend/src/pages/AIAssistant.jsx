@@ -52,7 +52,8 @@ const AIAssistant = () => {
     setLoading(true);
 
     try {
-      const API_BASE = import.meta.env.VITE_API_URL_1 || 'http://localhost:8000';
+      let API_BASE = import.meta.env.VITE_API_URL_1 || 'http://localhost:8000';
+      API_BASE = API_BASE.replace(/\/+$/, '');
       
       // Inject location context invisibly to the AI
       let contextStr = '';

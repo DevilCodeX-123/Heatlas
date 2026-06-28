@@ -116,7 +116,8 @@ const CitizenAnalytics = () => {
   const fetchAiAnalysis = async (district, state, temp, aqi) => {
     setIsAiLoading(true);
     try {
-      const API_BASE = import.meta.env.VITE_API_URL_1 || 'http://localhost:8000';
+      let API_BASE = import.meta.env.VITE_API_URL_1 || 'http://localhost:8000';
+      API_BASE = API_BASE.replace(/\/+$/, '');
       const res = await fetch(`${API_BASE}/api/ai/district-analysis`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
