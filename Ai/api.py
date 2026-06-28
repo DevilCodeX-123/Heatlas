@@ -1,14 +1,12 @@
-import re
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-
 import os
+import re
+import time
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv, find_dotenv
 import google.generativeai as genai
+from google.api_core.exceptions import ResourceExhausted
 
 # Load environment variables from root .env file
 load_dotenv(find_dotenv())
@@ -16,7 +14,8 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    # Using 2.5-flash for better free-tier rate limits than 3.5
+    model = genai.GenerativeModel('gemini-2.5-flash')
 else:
     model = None
 
@@ -24,8 +23,10 @@ app = FastAPI(title="Heatlas Gemini Engine", description="Production API using E
 
 origins = [
     "http://localhost:5173",
+    "http://localhost:5174",
     "http://localhost:5000",
     "http://127.0.0.1:5173",
+    "http://127.0.0.1:5174",
     "http://127.0.0.1:5000",
     # Add production frontend URLs here when deploying
 ]
@@ -48,6 +49,30 @@ class AuditData(BaseModel):
     balcony: str
     solarCap: int
 
+class DistrictData(BaseModel):
+    district: str
+    state: str
+    temperature: float
+    aqi: int
+
+def generate_with_retry(prompt: str, max_retries: int = 3):
+    """Helper function to retry generating content when hitting 429 Rate Limits."""
+    for attempt in range(max_retries):
+        try:
+            response = model.generate_content(prompt)
+            return response.text
+        except ResourceExhausted as e:
+            if attempt == max_retries - 1:
+                return "The Heatlas AI is currently experiencing high traffic (Rate Limit Exceeded). Please wait 15 seconds and try again."
+            time.sleep(15) # Wait 15 seconds before retrying
+        except Exception as e:
+            if "429" in str(e):
+                if attempt == max_retries - 1:
+                    return "The Heatlas AI is currently experiencing high traffic (Rate Limit Exceeded). Please wait 15 seconds and try again."
+                time.sleep(15)
+            else:
+                raise e
+
 @app.get("/")
 def read_root():
     return {"status": "Heatlas Production AI Engine is running!"}
@@ -58,9 +83,9 @@ def chat_with_ai(data: ChatMessage):
         return {"reply": "⚠️ **SYSTEM ALERT**: API Key missing. Please add `GEMINI_API_KEY` to the `Ai/.env` file."}
     
     try:
-        prompt = f"You are EcoShield AI, an environmental and climate resilience expert. The user says: {data.message}. Provide a concise, helpful response."
-        response = model.generate_content(prompt)
-        return {"reply": response.text}
+        prompt = f"You are Heatlas AI, an environmental and climate resilience expert. The user says: {data.message}. Provide a concise, helpful response."
+        text = generate_with_retry(prompt)
+        return {"reply": text}
     except Exception as e:
         return {"reply": f"Error communicating with Gemini: {str(e)}"}
 
@@ -87,8 +112,8 @@ def generate_action_plan(data: AuditData):
         Line 4: One short, specific insight about their solar potential ({data.solarCap} m2).
         Line 5: A short log message simulating a terminal action (e.g. > applying_thermal_models...)
         """
-        response = model.generate_content(prompt)
-        lines = response.text.strip().split('\n')
+        text = generate_with_retry(prompt)
+        lines = text.strip().split('\n')
         
         return {
             "savings": lines[0].replace('Line 1: ', '').strip() if len(lines)>0 else "₹15,000",
@@ -105,3 +130,20 @@ def generate_action_plan(data: AuditData):
             "insight2": str(e),
             "logs": ["> critical_failure."]
         }
+
+@app.post("/api/ai/district-analysis")
+def district_analysis(data: DistrictData):
+    if not model:
+        return {"analysis": "⚠️ AI Engine Offline. Please add GEMINI_API_KEY to your environment variables to enable regional heat analysis."}
+    
+    try:
+        prompt = f"""
+        Provide a concise, 1-2 sentence environmental analysis of {data.district}, {data.state} in India.
+        The current live temperature is {data.temperature}°C and the US AQI is {data.aqi}.
+        What is the primary geographic or seasonal reason for this temperature and air quality right now?
+        Keep it direct, professional, and insightful.
+        """
+        text = generate_with_retry(prompt)
+        return {"analysis": text.strip()}
+    except Exception as e:
+        return {"analysis": f"Error generating analysis: {str(e)}"}

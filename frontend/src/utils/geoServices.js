@@ -112,3 +112,24 @@ export const getMultiCityLiveWeather = async (cities) => {
     return [];
   }
 };
+
+// 6. Forward Geocoding (Nominatim) to get Lat/Lon from District & State
+export const getForwardGeocoding = async (district, state) => {
+  try {
+    const query = `${district}, ${state}, India`;
+    const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`, {
+      headers: {
+        'Accept-Language': 'en-US,en;q=0.9'
+      }
+    });
+    if (!response.ok) throw new Error('Forward Geocoding failed');
+    const data = await response.json();
+    if (data && data.length > 0) {
+      return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+    }
+    return null;
+  } catch (error) {
+    console.error("Forward Geocoding Error:", error);
+    return null;
+  }
+};

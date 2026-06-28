@@ -58,7 +58,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         </NavLink>
         <NavLink to="/analytics" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
           <BarChart2 className="nav-icon" />
-          <span>Citizen Analytics</span>
+          <span>India Heat Monitor</span>
         </NavLink>
         <NavLink to="/governance" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
           <Landmark className="nav-icon" />
